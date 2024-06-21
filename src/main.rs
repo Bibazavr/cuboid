@@ -1,14 +1,18 @@
-mod enemy;
-mod player;
-
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use enemy::EnemyPlugin;
-use player::PlayerPlugin;
+
+use crate::assets_loader::AssetLoaderPlugin;
+use crate::enemy::EnemyPlugin;
+use crate::player::PlayerPlugin;
+
+mod assets_loader;
+mod enemy;
+mod player;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(AssetLoaderPlugin)
         .add_systems(Startup, setup_camera)
         .add_plugins(PlayerPlugin)
         .add_plugins(EnemyPlugin)

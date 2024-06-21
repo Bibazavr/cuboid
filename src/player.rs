@@ -1,28 +1,40 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::player::components::Player;
+use crate::assets_loader::SceneAssets;
 
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 65.0;
 
+pub struct PlayerPlugin;
+
+#[derive(Component)]
+pub struct Player {}
+
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(PostStartup, spawn_player)
+            .add_systems(Update, player_movement)
+            .add_systems(Update, confine_player_movement);
+    }
+}
+
 pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>,
+    scene_assets: Res<SceneAssets>,
 ) {
     let window = window_query.get_single().unwrap();
 
     commands.spawn((
         SpriteBundle {
             transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
-            texture: asset_server.load("sprites/cuboid.png",),
+            texture: scene_assets.player.clone(),
             ..default()
         },
         Player {},
     ));
 }
-
 
 pub fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,

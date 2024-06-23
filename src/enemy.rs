@@ -56,7 +56,7 @@ pub fn move_enemy(
                 direction += Vec3::new(-1.0, 0.0, 0.0);
             }
 
-            if (player_transform.translation.y > enemy_transform.translation.y) {
+            if player_transform.translation.y > enemy_transform.translation.y {
                 direction += Vec3::new(0.0, 1.0, 0.0);
             } else {
                 direction += Vec3::new(0.0, -1.0, 0.0);

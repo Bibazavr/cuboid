@@ -1,15 +1,14 @@
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
-use rand::random;
+use bevy_rapier3d::prelude::*;
 
-use crate::assets_loader::SceneAssets;
 use crate::player::Player;
 
 pub const ENEMY_COUNT: usize = 4;
-pub const ENEMY_SPEED: f32 = 400.0;
+pub const ENEMY_SPEED: f32 = 10.0;
+pub const ENEMY_SIZE: f32 = 1.0;
 
 #[derive(Component)]
-pub struct Enemy {}
+pub struct Enemy;
 
 pub struct EnemyPlugin;
 
@@ -20,53 +19,57 @@ impl Plugin for EnemyPlugin {
     }
 }
 
-pub fn spawn_enemy(
-    mut commands: Commands,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    scene_assets: Res<SceneAssets>,
-) {
-    let window = window_query.get_single().unwrap();
-
+pub fn spawn_enemy(mut commands: Commands) {
     for _ in 0..ENEMY_COUNT {
-        let random_x = random::<f32>() * window.width();
-        let random_y = random::<f32>() * window.height();
-        commands.spawn((
-            SpriteBundle {
-                transform: Transform::from_xyz(random_x, random_y, 0.0),
-                texture: scene_assets.enemy.clone(),
-                ..default()
-            },
-            Enemy {},
-        ));
+        commands
+            .spawn((
+                Enemy,
+                RigidBody::Dynamic,
+                Collider::ball(ENEMY_SIZE),
+                Velocity {
+                    linvel: Vec3::new(0.0, 0.0, 0.0),
+                    angvel: Vec3::new(0.0, 0.0, 0.0),
+                },
+            ))
+            .insert(GravityScale(0.5))
+            .insert(Sleeping::disabled())
+            .insert(Ccd::enabled());
     }
 }
 
 pub fn move_enemy(
-    mut enemy_query: Query<&mut Transform, With<Enemy>>,
-    player_query: Query<&mut Transform, (With<Player>, Without<Enemy>)>,
+    mut enemy_query: Query<&mut Velocity, With<Enemy>>,
+    player_query: Query<&mut Velocity, (With<Player>, Without<Enemy>)>,
     time: Res<Time>,
 ) {
-    if let Ok(player_transform) = player_query.get_single() {
-        for mut enemy_transform in enemy_query.iter_mut() {
+    if let Ok(player_velocity) = player_query.get_single() {
+        for mut enemy_velocity in enemy_query.iter_mut() {
             let mut direction = Vec3::ZERO;
 
-            if player_transform.translation.x > enemy_transform.translation.x {
+            if player_velocity.linvel.x > enemy_velocity.linvel.x {
                 direction += Vec3::new(1.0, 0.0, 0.0);
             } else {
                 direction += Vec3::new(-1.0, 0.0, 0.0);
             }
 
-            if player_transform.translation.y > enemy_transform.translation.y {
+            if player_velocity.linvel.y > enemy_velocity.linvel.y {
                 direction += Vec3::new(0.0, 1.0, 0.0);
             } else {
                 direction += Vec3::new(0.0, -1.0, 0.0);
+            }
+
+            if player_velocity.linvel.z > enemy_velocity.linvel.z {
+                direction += Vec3::new(0.0, 0.0, 1.0);
+            } else {
+                direction += Vec3::new(0.0, 0.0, -1.0);
             }
 
             if direction.length() > 0.0 {
                 direction = direction.normalize();
             }
 
-            enemy_transform.translation += direction * ENEMY_SPEED * time.delta_seconds();
+            enemy_velocity.linvel += direction * ENEMY_SPEED * time.delta_seconds();
+            enemy_velocity.angvel += direction * ENEMY_SPEED * time.delta_seconds();
         }
     }
 }

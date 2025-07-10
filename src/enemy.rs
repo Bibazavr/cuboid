@@ -30,14 +30,12 @@ pub fn spawn_enemy(mut commands: Commands) {
                 Enemy,
                 RigidBody::KinematicPositionBased,
                 Collider::ball(ENEMY_SIZE),
+                Mesh3d::default(),
             ))
             .insert(GravityScale(0.5))
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
-            .insert(SpatialBundle {
-                transform: Transform::from_xyz(random_x, random_y, random_z),
-                ..default()
-            })
+            .insert(Transform::from_xyz(random_x, random_y, random_z))
             .insert(KinematicCharacterController { ..default() });
     }
 }
@@ -47,13 +45,13 @@ pub fn move_enemy(
     player_query: Query<&Transform, (With<Player>, Without<Enemy>)>,
     time: Res<Time>,
 ) {
-    if let Ok(player_transform) = player_query.get_single() {
-        for (mut enemy_controller, enemy_transoform) in enemy_query.iter_mut() {
+    if let Ok(player_transform) = player_query.single() {
+        for (mut enemy_controller, enemy_transform) in enemy_query.iter_mut() {
             let mut direction = Vec3::ZERO;
 
             let player_translation = player_transform.translation;
 
-            let enemy_translation = enemy_transoform.translation;
+            let enemy_translation = enemy_transform.translation;
 
             if player_translation.x > enemy_translation.x {
                 direction += Vec3::new(1.0, 0.0, 0.0);
@@ -77,7 +75,7 @@ pub fn move_enemy(
                 direction = direction.normalize();
             }
 
-            enemy_controller.translation = Some(direction * ENEMY_SPEED * time.delta_seconds());
+            enemy_controller.translation = Some(direction * ENEMY_SPEED * time.delta_secs());
         }
     }
 }

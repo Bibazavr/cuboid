@@ -22,11 +22,11 @@ pub fn spawn_player(mut commands: Commands) {
             Player,
             RigidBody::KinematicPositionBased,
             Collider::cuboid(PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE),
+            Mesh3d::default(),
         ))
         .insert(GravityScale(0.5))
         .insert(Sleeping::disabled())
         .insert(Ccd::enabled())
-        .insert(SpatialBundle::default())
         .insert(KinematicCharacterController {
             ..KinematicCharacterController::default()
         });
@@ -37,7 +37,7 @@ pub fn player_movement(
     mut player_query: Query<&mut KinematicCharacterController, With<Player>>,
     time: Res<Time>,
 ) {
-    if let Ok(mut controller) = player_query.get_single_mut() {
+    if let Ok(mut controller) = player_query.single_mut() {
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::ArrowLeft) || keyboard_input.pressed(KeyCode::KeyA) {
@@ -57,6 +57,6 @@ pub fn player_movement(
             direction = direction.normalize();
         }
 
-        controller.translation = Some(direction * PLAYER_SPEED * time.delta_seconds());
+        controller.translation = Some(direction * PLAYER_SPEED * time.delta_secs());
     }
 }

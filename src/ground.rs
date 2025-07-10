@@ -14,6 +14,6 @@ impl Plugin for GroundPlugin {
 
 pub fn spawn_ground(mut commands: Commands) {
     commands
-        .spawn((Collider::cuboid(100.0, 0.1, 100.0), Ground))
-        .insert(TransformBundle::from(Transform::from_xyz(0.0, -2.0, 0.0)));
+        .spawn((Ground, Collider::cuboid(100.0, 0.1, 100.0)))
+        .insert(Transform::from_xyz(0.0, -2.0, 0.0));
 }
